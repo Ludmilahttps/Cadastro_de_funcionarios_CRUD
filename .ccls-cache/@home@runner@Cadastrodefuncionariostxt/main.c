@@ -34,8 +34,8 @@ void deletar(struct Funcionario funcionario[N]);
 void dataatual(struct Funcionario funcionario[N], int i);
 void exporta_dados_arquivo_txt(struct Funcionario funcionario[N]);
 void importa_dados_arquivo_txt(struct Funcionario funcionario[N]);
-void exporta_dados_arquivo_bin(struct Funcionario funcionario[N]);
-void importa_dados_arquivo_bin(struct Funcionario funcionario[N]);
+void salva_dados_arquivo_bin(struct Funcionario funcionario[N]);
+void recupera_dados_arquivo_bin(struct Funcionario funcionario[N]);
 void remove_enter(char s[N]);
 
 int main(){
@@ -44,6 +44,9 @@ int main(){
   int varwhile = 1; //loop para sempre voltar pro menu
   int opc; // variavel de escolha do menu
 
+  //importa dados salvos anteriormente
+  recupera_dados_arquivo_bin(funcionario);
+  
   while(varwhile){
     //system(“cls”);
     printf("\n ---------------- menu ------------------");
@@ -104,6 +107,8 @@ int main(){
         break;
       case 11:
         printf("\n encerrando programa... \n");
+        //salva dados em um arquivo binario
+        salva_dados_arquivo_bin(funcionario);
         varwhile = 0; //quebra o loop
         break;
       default:
@@ -480,14 +485,57 @@ void importa_dados_arquivo_txt(struct Funcionario funcionario[N])
    return;
 }
 
-void exporta_dados_arquivo_bin(struct Funcionario funcionario[N])
+void salva_dados_arquivo_bin(struct Funcionario funcionario[N])
 {
+  	FILE* arq_funcionarios;
+  //abre arquivo binario
+  arq_funcionarios = fopen("base_de_dados", "wb");
   
+  if(arq_funcionarios == NULL)
+  {
+    printf("ERROR.\n");
+    exit(0);
+  }
+  
+  for (int i = 1; i <= matricula; i++) {
+  		fwrite(funcionario[i].nome, sizeof(char), N, arq_funcionarios);
+  		fwrite(funcionario[i].cidade, sizeof(char), N, arq_funcionarios);
+  		fwrite(&funcionario[i].aniversario.dia, sizeof(int), N,arq_funcionarios);
+      fwrite(&funcionario[i].aniversario.mes, sizeof(int), N, arq_funcionarios);
+      fwrite(&funcionario[i].aniversario.ano, sizeof(int), N, arq_funcionarios);
+  		fwrite(&funcionario[i].salario, sizeof(float), N, arq_funcionarios);
+        
+  	}
+  	fclose(arq_funcionarios); 
 }
 
-void importa_dados_arquivo_bin(struct Funcionario funcionario[N])
+void recupera_dados_arquivo_bin(struct Funcionario funcionario[N])
 {
-  
+   FILE* arq_funcionarios;
+    //abre arquivo texto
+    arq_funcionarios = fopen("base_de_dados", "ab+");
+    
+    if(arq_funcionarios == NULL)
+    {
+      printf("ERROR\n");
+      exit(0);
+    }
+  	int i=1;
+
+    //passa os dados do arquivo para o programa
+  	while(!feof(arq_funcionarios))
+    {
+      fread(funcionario[i].nome, sizeof(char), N, arq_funcionarios);
+  		fread(funcionario[i].cidade, sizeof(char), N, arq_funcionarios);
+  		fread(&funcionario[i].aniversario.dia, sizeof(int), N,arq_funcionarios);
+      fread(&funcionario[i].aniversario.mes, sizeof(int), N, arq_funcionarios);
+      fread(&funcionario[i].aniversario.ano, sizeof(int), N, arq_funcionarios);
+  		fread(&funcionario[i].salario, sizeof(float), N, arq_funcionarios);
+      i++;
+      matricula++;
+  	}
+  matricula--;
+  	fclose(arq_funcionarios);
 }
 
 void remove_enter(char s[N])
