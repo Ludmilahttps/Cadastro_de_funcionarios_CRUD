@@ -1,8 +1,24 @@
+/**
+ * @author Ludmila Silveira (ludmila.ss@grad.ufsc.br)
+ * @brief lista encadeada com manipulação de arquivos
+ * Trabalho 2 de Linguagem de Programação 1
+ * Engenharia de Computação - UFSC
+ *
+ * @date 2022-08-01
+ *
+ * @copyright Copyright (c) 2022
+ */
+
 #include <stdio.h>
 #include <string.h>
 #include <time.h>
 #include <stdlib.h>
 #define N 100
+#define TRUE			1
+#define FALSE 		0
+
+typedef unsigned char boolean;
+typedef char string[50];
 
 struct Aniversario //estrutura de data de nascimento
 {
@@ -11,87 +27,80 @@ struct Aniversario //estrutura de data de nascimento
   int ano;
 };
 
-struct Funcionario //estrutura ficha de funcionario
+typedef struct Funcionario //estrutura ficha de funcionario
 {
-  char nome[100];
-  char cidade[100];
+  string nome;
+  string cidade;
   float salario;
   struct Aniversario aniversario; //aninhamento de estrutura
-};
+  struct Funcionario *prox;
+} funcionario;
 
 int matricula=0; // variavel de controle do numero de funcionarios cadastrados
 float salariomin = 1212.00; // variavel com o valor do salario minino
 
 //declaração das funções que seram utilizadas no codigo
-void adicionar(struct Funcionario funcionario[N]);
-void atualizar(struct Funcionario funcionario[N]);
-void relatorio(struct Funcionario funcionario[N]);
-void consultar(struct Funcionario funcionario[N]);
-void comparar(struct Funcionario funcionario[N]);
-void relacionar(struct Funcionario funcionario[N]);
-void cidade(struct Funcionario funcionario[N]);
+int menu();
+funcionario* adicionar();
+void insere_item_pelo_fim(funcionario **lista, funcionario *item);
+void atualizar(funcionario* lista);
+void relatorio(funcionario* lista);
+void consultar(funcionario* lista);
+void comparar(funcionario* lista);
+void relacionar(funcionario* lista);
+//void cidade(funcionario* lista);
 void deletar(struct Funcionario funcionario[N]);
-void dataatual(struct Funcionario funcionario[N], int i);
-void exporta_dados_arquivo_txt(struct Funcionario funcionario[N]);
+void apaga_todos_os_dados(funcionario **lista);
+/*void exporta_dados_arquivo_txt(struct Funcionario funcionario[N]);
 void importa_dados_arquivo_txt(struct Funcionario funcionario[N]);
 void salva_dados_arquivo_bin(struct Funcionario funcionario[N]);
-void recupera_dados_arquivo_bin(struct Funcionario funcionario[N]);
+void recupera_dados_arquivo_bin(struct Funcionario funcionario[N]);*/
 void remove_enter(char s[N]);
+boolean lista_esta_vazia(funcionario *lista);
 
 int main(){
-  struct Funcionario funcionario[N];
+
+  funcionario *lista = NULL, *novo;
   
   int varwhile = 1; //loop para sempre voltar pro menu
   int opc; // variavel de escolha do menu
 
   //importa dados salvos anteriormente
-  recupera_dados_arquivo_bin(funcionario);
+  //recupera_dados_arquivo_bin(funcionario);
   
   while(varwhile){
     //system(“cls”);
-    printf("\n ---------------- menu ------------------");
-    printf("\n 1. adicionar ficha de funcionario");
-    printf("\n 2. atualizar ficha de funcionario");
-    printf("\n 3. relatorio de funcionarios");
-    printf("\n 4. consultar funcionario");
-    printf("\n 5. comparar salarios dos funcionarios");
-    printf("\n 6. relacionar o salario dos funcionarios com o salario minimo");
-    printf("\n 7. relatorio do numero de funcionarios por cidade");
-    printf("\n 8. deletar um funcionario");
-    printf("\n 9. importar dados para um arquivo txt");
-    printf("\n 10. exportar dados para um arquivo txt");
-    printf("\n 11. fechar programa"); //quebra o loop
-    printf("\n------------------------------------------ \n\n opcao: ");
-    scanf("%i", &opc);
-
+    
+    opc = menu();
     switch(opc){
       case 1:
         printf("\n adicionar ficha de funcionario:  \n");
-        adicionar(funcionario);
+        novo = adicionar();
+        insere_item_pelo_fim(&lista, novo);
         break;
       case 2:
         printf("\n atualizar ficha de funcionario: \n");
-        atualizar(funcionario);
+        atualizar(lista);
         break;
       case 3:
         printf("\n relatorio de funcionarios: \n");
-        relatorio(funcionario);
+        relatorio(lista);
         break;
       case 4:
         printf("\n consultar funcionario: \n");
-        consultar(funcionario);
+        consultar(lista);
         break;
       case 5:
         printf("\n comparar salarios dos funcionarios com um valor escolhido: \n");
-        comparar(funcionario);
+        comparar(lista);
         break;
       case 6:
         printf("\n relacionar o salario dos funcionarios com o salario minimo: \n");
-        relacionar(funcionario);
+        relacionar(lista);
         break;
-      case 7:
+      /*case 7:
         printf("\n relatorio do numero de funcionarios por cidade: \n");
-        cidade(funcionario);
+        cidade(lista);
         break;
       case 8:
         printf("\n deletar um funcionario: \n");
@@ -104,11 +113,15 @@ int main(){
       case 10:
         printf("\n exportar dados para um arquivo txt \n");
         exporta_dados_arquivo_txt(funcionario);
-        break;
+        break;*/
       case 11:
+        printf("\n apaga todos os dados cadastrados \n");
+        apaga_todos_os_dados(&lista);
+        break;
+      case 12:
         printf("\n encerrando programa... \n");
         //salva dados em um arquivo binario
-        salva_dados_arquivo_bin(funcionario);
+        //salva_dados_arquivo_bin(funcionario);
         varwhile = 0; //quebra o loop
         break;
       default:
@@ -119,127 +132,165 @@ int main(){
   return 0;
 }
 
-void dataatual(struct Funcionario funcionario[N], int i)
+int menu()
 {
-  int idade;
-  time_t mytime;
-  mytime = time(NULL);
-  struct tm tm = *localtime(&mytime); //estrutura que extrai a data do sistema
+    int opc;
+  
+    printf("\n ---------------- menu ------------------");
+    printf("\n 1. adicionar ficha de funcionario");
+    printf("\n 2. atualizar ficha de funcionario");
+    printf("\n 3. relatorio de funcionarios");
+    printf("\n 4. consultar funcionario");
+    printf("\n 5. comparar salarios dos funcionarios");
+    printf("\n 6. relacionar o salario dos funcionarios com o salario minimo");
+    printf("\n 7. relatorio do numero de funcionarios por cidade");
+    printf("\n 8. deletar um funcionario");
+    printf("\n 9. importar dados para um arquivo txt");
+    printf("\n 10. exportar dados para um arquivo txt");
+    printf("\n 11. apaga todos os dados cadastrados");
+    printf("\n 12. fechar programa"); //quebra o loop
+    printf("\n------------------------------------------ \n\n opcao: ");
+    scanf("%i", &opc);
 
-  //dia atual: tm.tm_mday . mes atual: tm.tm_mon + 1 . ano atual: tm.tm_year + 1900
-
-  idade = 365*(tm.tm_year + 1900) + 30*(tm.tm_mon + 1) + (tm.tm_mday) - 365*(funcionario[i].aniversario.ano) - 30*(funcionario[i].aniversario.mes - funcionario[i].aniversario.dia);
-  printf("- idade: %d anos ", idade/365);
-
-  return;
+  return opc;
 }
 
-void adicionar(struct Funcionario funcionario[N])
+funcionario* adicionar()
 {
-  if(matricula==N) // impede o usuario de cadastrar mais funcionarios após atingir o limite
+  funcionario *no = (funcionario*)malloc(sizeof(funcionario));
+  
+  if(matricula==N) 
+    // impede o usuario de cadastrar mais funcionarios após atingir o limite
   {
     printf("\ndesculpe, jah temos o limite de funcionarios cadastrados!\n");
   }
   else
   {
-    matricula++; //adiciona mais um numero na matricula para contar mais um funcionario no sistema.
+    matricula++; 
+    //adiciona mais um numero na matricula para contar mais um funcionario no sistema.
+      getchar();
       printf("\n nome do funcionario: ");
-        scanf(" %s", funcionario[matricula].nome);
+        fgets(no->nome, 50, stdin);
+        remove_enter(no->nome);
       printf(" cidade do funcionario: ");
-        scanf(" %s", funcionario[matricula].cidade);
+        fgets(no->cidade, 50, stdin);
+        remove_enter(no->cidade);
       printf(" dia de nascimento do funcionario: ");
-        scanf("%d", &funcionario[matricula].aniversario.dia);
+        scanf("%d", &no->aniversario.dia);
       printf(" mes de nascimento do funcionario: ");
-        scanf("%d", &funcionario[matricula].aniversario.mes);
+        scanf("%d", &no->aniversario.mes);
       printf(" ano de nascimento do funcionario: ");
-        scanf("%d", &funcionario[matricula].aniversario.ano);
+        scanf("%d", &no->aniversario.ano);
       printf(" salario do funcionario: ");
-        scanf("%f", &funcionario[matricula].salario);
-      printf("\n A matricula de %s eh: %i \n", funcionario[matricula].nome, matricula);
+        scanf("%f", &no->salario);
+      printf("\n A matricula de %s eh: %i \n", no->nome, matricula);
+
+      no->prox = NULL;
   }
-  return;
+  return no;
 }
 
-void atualizar(struct Funcionario funcionario[N])
+void insere_item_pelo_fim(funcionario **lista, funcionario *item)
 {
-  int alterar, i; //ficha a ser alterada, varivel contadora
+  funcionario *aux;
+	if (lista_esta_vazia(*lista) == TRUE) {
+		*lista = item;
+	}
+	else {
+		aux = *lista;
+		while (aux->prox != NULL) aux = aux->prox;
+		aux->prox = item;
+	}
+}
+
+void atualizar(funcionario* lista)
+{
+  funcionario* aux = lista;
+  string alterar;//ficha a ser alterada
   int varencontrada=0; //variavel que diz se a ficha a ser alterada foi encontrada
 
-  if(matricula==0)
+  if(aux==NULL)
   {
     printf("\nnao existe nenhum funcionario cadastrado no sistema. \n");
   }
   else
   {
-    printf("\n (para atualizar a ficha de um funcionario, eh necessario seu numero de matricula, caso nao saiba o numero de");
-    printf("\n matricula desejado, digite 400 para voltar ao menu e retirar o relatorio dos funcionarios cadastrados.)\n");
-    printf("\n digite a matricula do funcionario que deseja alterar a ficha: ");
-    scanf("%i", &alterar);
+    printf("\n Digite o nome do funcionario que deseja alterar a ficha: ");
+    scanf("%s", alterar);
 
-    if(alterar==400)
-    {
-      return; //retorna para o menu
-    }
-    else
-    {
-      for(i=1;i<=matricula;i++)
+      while(aux!=NULL)
       {
-        if(alterar==i)
+        if(strcmp(alterar, aux->nome)==0)
         {
           varencontrada++; //valida para dizer se o funcionario foi encontrado
+
+          getchar();
           printf("\n nome do funcionario: ");
-            scanf(" %s", funcionario[i].nome);
+            fgets(aux->nome, 50, stdin);
+            remove_enter(aux->nome);
           printf(" cidade do funcionario: ");
-            scanf(" %s", funcionario[i].cidade);
+            fgets(aux->cidade, 50, stdin);
+            remove_enter(aux->cidade);
           printf(" dia de nascimento do funcionario: ");
-            scanf("%d", &funcionario[i].aniversario.dia);
+            scanf("%d", &aux->aniversario.dia);
           printf(" mes de nascimento do funcionario: ");
-            scanf("%d", &funcionario[i].aniversario.mes);
-          printf(" ano de nascimento do funcionario: ");
-            scanf("%d", &funcionario[i].aniversario.ano);
+            scanf("%d", &aux->aniversario.mes);
+          printf(" ano de nascimento 3do funcionario: ");
+            scanf("%d", &aux->aniversario.ano);
           printf(" salario do funcionario: ");
-            scanf("%f", &funcionario[i].salario);
-          printf("\n ficha do funcionario %s, matricula: %i atualizada!\n", funcionario[i].nome, i);
+            scanf("%f", &aux->salario);
+          printf("\n ficha do funcionario %s, atualizada!\n", aux->nome);
+          return;
         }
+        aux=aux->prox;
       }
       if(varencontrada==0)
       {
         printf("\nfuncionario nao encontrado. ");
       }
-    }
   }
   return;
 }
 
-void relatorio(struct Funcionario funcionario[N])
+void relatorio(funcionario *lista)
 {
-  int i; //variavel contadora
-  if(matricula==0)
+  funcionario *aux = lista;
+  
+  //verifica se a lista está vazia
+  if(aux==NULL)
   {
     printf("\nnao existe nenhum funcionario cadastrado no sistema. \n");
   }
   else
   {
-    for(i=1;i<=matricula;i++)
+    while(aux!=NULL)
     {
+      //estrutura que extrai a data do sistema
+      time_t mytime;
+      mytime = time(NULL);
+      struct tm tm = *localtime(&mytime);
+      int idade = 365*(tm.tm_year + 1900) + 30*(tm.tm_mon + 1) + (tm.tm_mday) - 365*(aux->aniversario.ano) - 30*(aux->aniversario.mes - aux->aniversario.dia);
+      
       // imprime a ficha de funcionario por funcionario
-      printf("\n matricula: %i ", i);
-      printf("- nome: %s ", funcionario[i].nome);
-      printf("- nascimento: %i/%i/%i ", funcionario[i].aniversario.dia, funcionario[i].aniversario.mes, funcionario[i].aniversario.ano);
-      dataatual(funcionario, i); //funçao que contabiliza a idade a partir da data atual e da estrutura aniversario
-      printf("- salario: %.2f", funcionario[i].salario);
+      printf("Nome: %s - ", aux->nome);
+      printf("Cidade: %s - ", aux->cidade);
+  	  printf("Nascimento: %d/%d/%d - ", aux->aniversario.dia, aux->aniversario.mes, aux->aniversario.ano);
+      printf("idade: %d anos - ", idade/365);
+  	  printf("Salario: %.2f ", aux->salario);
+  	  printf("\n");
+  	  
+  		aux = aux->prox;
     }
-    printf("\n");
   }
-  return;
 }
 
-void consultar(struct Funcionario funcionario[N])
+void consultar(funcionario *lista)
 {
-  char buscafunc[100]; //variavel para procurar um funcionario
-  int i, varbusca=0; //variavel contadora e variavel de controle de busca encontrada ou não
+  funcionario *aux = lista;
+  string buscafunc; //variavel para procurar um funcionario
+  int varbusca=0; //variavel de controle de busca encontrada ou não
 
-  if(matricula==0)
+  if(aux==NULL)
   {
     printf("\nnao existe nenhum funcionario cadastrado no sistema. \n");
   }
@@ -248,17 +299,24 @@ void consultar(struct Funcionario funcionario[N])
     printf("\n por qual funcionario voce procura: ");
     scanf(" %s", buscafunc);
 
-    for(i=0;i<=matricula;i++)
+    while(aux!=NULL)
     {
-      if(strcmp(funcionario[i].nome, buscafunc)==0)
+      if(strcmp(aux->nome, buscafunc)==0)
       {
+        //estrutura que extrai a data do sistema
+        time_t mytime;
+        mytime = time(NULL);
+        struct tm tm = *localtime(&mytime);
+        int idade = 365*(tm.tm_year + 1900) + 30*(tm.tm_mon + 1) + (tm.tm_mday) - 365*(aux->aniversario.ano) - 30*(aux->aniversario.mes - aux->aniversario.dia);
+        
         varbusca++; //variavel auxiliar que informa se o funcionario buscado foi encontrado
-        printf("\n funcionario: %s encontrado, segue ficha: ", funcionario[i].nome);
-        printf("\n matricula: %i ", i);
-        printf("\n nascimento: %i/%i/%i ", funcionario[i].aniversario.dia, funcionario[i].aniversario.mes, funcionario[i].aniversario.ano);
-        dataatual(funcionario, i); //funçao que contabiliza a idade a partir da data atual e da estrutura aniversario
-        printf("\n salario: %f", funcionario[i].salario);
+        printf("\n Funcionario: %s encontrado, segue ficha ", aux->nome);
+        printf("\n Cidade: %s  ", aux->cidade);
+        printf("\n Nascimento: %i/%i/%i ", aux->aniversario.dia, aux->aniversario.mes, aux->aniversario.ano);
+        printf("\n Idade: %d anos - ", idade/365);
+        printf("\n Salario: %.2f reais", aux->salario);
       }
+      aux=aux->prox;
     }
       if(varbusca==0)
       {
@@ -269,31 +327,32 @@ void consultar(struct Funcionario funcionario[N])
   return;
 }
 
-void comparar(struct Funcionario funcionario[N])
+void comparar(funcionario* lista)
 {
+  funcionario *aux = lista;
   float scompara; //salario de comparação
-  int i, menor=0; //variaveis contadoras
-  int vmaior[N], vmenor[N]; //vetor maior que o salario sugerido, vetor menor que o salario sugerido
+  int menor=0; //variaveis contadoras
 
-  if(matricula==0)
+  if(aux==NULL)
   {
     printf("\nnao existe nenhum funcionario cadastrado no sistema. \n");
   }
   else
   {
-    printf("\n digite um valor para comparar com o salario dos funcionarios: ");
+    printf("\n Digite um valor para buscar salarios maiores ou iguais: \n::");
     scanf("%f", &scompara);
 
-    for(i=1;i<=matricula;i++) //compara todos os funcionarios
+    while(aux!=NULL)
     {
-      if(funcionario[i].salario >= scompara)
+      if(aux->salario >= scompara)
       {
-        printf("\n %s recebe %f", funcionario[i].nome, funcionario[i].salario);
+        printf("\n %s recebe %f", aux->nome, aux->salario);
       }
       else
       {
         menor++;
       }
+      aux=aux->prox;
     }
     if(menor==matricula)
     {
@@ -303,9 +362,9 @@ void comparar(struct Funcionario funcionario[N])
   return;
 }
 
-void relacionar(struct Funcionario funcionario[N])
+void relacionar(funcionario* lista)
 {
-  int i; //variavel contadora
+  funcionario *aux = lista;
   int sinicial=0, smedio=0, salto=0; //variaveis de contagem dos grupos
 
   if(matricula==0)
@@ -314,20 +373,21 @@ void relacionar(struct Funcionario funcionario[N])
   }
   else
   {
-    for(i=1;i<=matricula;i++)
+     while(aux!=NULL)
     {
-      if(funcionario[i].salario < salariomin)
+      if(aux->salario < salariomin)
       {
         sinicial++;
       }
-      if(funcionario[i].salario > salariomin && funcionario[i].salario < (3 * salariomin))
+      if(aux->salario > salariomin && aux->salario < (3 * salariomin))
       {
         smedio++;
       }
-      if(funcionario[i].salario > (3 * salariomin))
+      if(aux->salario > (3 * salariomin))
       {
         salto++;
       }
+      aux=aux->prox;
     }
     printf("\n %i funcionarios recebem menos de um salario minimo.", sinicial);
     printf("\n %i funcionarios recebem de um salario minimo a tres.", smedio);
@@ -337,8 +397,9 @@ void relacionar(struct Funcionario funcionario[N])
   return;
 }
 
-void cidade(struct Funcionario funcionario[N])
+/*void cidade(funcionario* lista)
 {
+  funcionario *aux = lista;
   int i, j; //variaveis contadoras
   int variguais=0, varanterior=0; //variaveis de controle
 
@@ -373,7 +434,7 @@ void cidade(struct Funcionario funcionario[N])
   }
   return;
 }
-
+*/
 void deletar(struct Funcionario funcionario[N])
 {
   int i, deletar=0; //variavel contadora e variavel que armazena qual funcionario deletar
@@ -423,7 +484,20 @@ void deletar(struct Funcionario funcionario[N])
   return;
 }
 
-void exporta_dados_arquivo_txt(struct Funcionario funcionario[N])
+void apaga_todos_os_dados(funcionario **lista)
+{
+	funcionario *aux;
+	
+	while (*lista != NULL) 
+  {
+		aux = *lista;
+		*lista = (*lista)->prox;
+		printf("Apagando o item %s\n", aux->nome);		
+		free(aux);
+	}	
+}
+
+/*void exporta_dados_arquivo_txt(struct Funcionario funcionario[N])
 {
 	FILE* arq_funcionarios;
   //abre arquivo texto
@@ -537,9 +611,15 @@ void recupera_dados_arquivo_bin(struct Funcionario funcionario[N])
   matricula--;
   	fclose(arq_funcionarios);
 }
-
+*/
 void remove_enter(char s[N])
 {
 	int tamanho = strlen(s);
 	s[tamanho-1] = '\0';
+}
+
+boolean lista_esta_vazia(funcionario *lista)
+{
+	if (lista == NULL) return TRUE;
+	return FALSE;
 }
