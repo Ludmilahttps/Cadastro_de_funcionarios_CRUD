@@ -588,7 +588,7 @@ void salva_dados_arquivo_bin(funcionario *lista)
   	FILE* arq_funcionarios;
     funcionario *aux = lista;
   //abre arquivo binario
-  arq_funcionarios = fopen("base_de_dados", "wb+");
+  arq_funcionarios = fopen("base_de_dados", "w+b");
   
   if(arq_funcionarios == NULL)
   {
@@ -615,7 +615,7 @@ void recupera_dados_arquivo_bin(funcionario **lista)
   funcionario *aux;
   
     //abre arquivo texto
-    arq_funcionarios = fopen("base_de_dados", "rb");
+    arq_funcionarios = fopen("base_de_dados", "a+b");
     
     if(arq_funcionarios == NULL)
     {
