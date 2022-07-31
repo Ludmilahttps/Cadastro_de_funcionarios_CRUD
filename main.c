@@ -42,19 +42,19 @@ float salariomin = 1212.00; // variavel com o valor do salario minino
 //declaração das funções que seram utilizadas no codigo
 int menu();
 funcionario* adicionar();
-void insere_item_pelo_fim(funcionario **lista, funcionario *item);
+void insere_item(funcionario **lista, funcionario *item);
 void atualizar(funcionario* lista);
 void relatorio(funcionario* lista);
 void consultar(funcionario* lista);
 void comparar(funcionario* lista);
 void relacionar(funcionario* lista);
-//void cidade(funcionario* lista);
-void deletar(struct Funcionario funcionario[N]);
+void cidade(funcionario* lista);
+void deletar(funcionario **lista);
 void apaga_todos_os_dados(funcionario **lista);
-/*void exporta_dados_arquivo_txt(struct Funcionario funcionario[N]);
-void importa_dados_arquivo_txt(struct Funcionario funcionario[N]);
-void salva_dados_arquivo_bin(struct Funcionario funcionario[N]);
-void recupera_dados_arquivo_bin(struct Funcionario funcionario[N]);*/
+void exporta_dados_arquivo_txt(funcionario *lista);
+void importa_dados_arquivo_txt(funcionario **lista);
+void salva_dados_arquivo_bin(funcionario *lista);
+void recupera_dados_arquivo_bin(funcionario **lista);
 void remove_enter(char s[N]);
 boolean lista_esta_vazia(funcionario *lista);
 
@@ -66,7 +66,7 @@ int main(){
   int opc; // variavel de escolha do menu
 
   //importa dados salvos anteriormente
-  //recupera_dados_arquivo_bin(funcionario);
+  recupera_dados_arquivo_bin(&lista);
   
   while(varwhile){
     //system(“cls”);
@@ -76,7 +76,7 @@ int main(){
       case 1:
         printf("\n adicionar ficha de funcionario:  \n");
         novo = adicionar();
-        insere_item_pelo_fim(&lista, novo);
+        insere_item(&lista, novo);
         break;
       case 2:
         printf("\n atualizar ficha de funcionario: \n");
@@ -98,22 +98,22 @@ int main(){
         printf("\n relacionar o salario dos funcionarios com o salario minimo: \n");
         relacionar(lista);
         break;
-      /*case 7:
+      case 7:
         printf("\n relatorio do numero de funcionarios por cidade: \n");
         cidade(lista);
         break;
       case 8:
         printf("\n deletar um funcionario: \n");
-        deletar(funcionario);
+        deletar(&lista);
         break;
       case 9:
         printf("\n importar dados de um arquivo txt \n");
-        importa_dados_arquivo_txt(funcionario);
+        importa_dados_arquivo_txt(&lista);
         break;
       case 10:
         printf("\n exportar dados para um arquivo txt \n");
-        exporta_dados_arquivo_txt(funcionario);
-        break;*/
+        exporta_dados_arquivo_txt(lista);
+        break;
       case 11:
         printf("\n apaga todos os dados cadastrados \n");
         apaga_todos_os_dados(&lista);
@@ -121,7 +121,7 @@ int main(){
       case 12:
         printf("\n encerrando programa... \n");
         //salva dados em um arquivo binario
-        //salva_dados_arquivo_bin(funcionario);
+        salva_dados_arquivo_bin(lista);
         varwhile = 0; //quebra o loop
         break;
       default:
@@ -190,16 +190,21 @@ funcionario* adicionar()
   return no;
 }
 
-void insere_item_pelo_fim(funcionario **lista, funcionario *item)
+void insere_item(funcionario **lista, funcionario *item)
 {
   funcionario *aux;
-	if (lista_esta_vazia(*lista) == TRUE) {
+	if (lista_esta_vazia(*lista) == TRUE) 
+  {
 		*lista = item;
 	}
-	else {
+	else 
+  {
 		aux = *lista;
-		while (aux->prox != NULL) aux = aux->prox;
-		aux->prox = item;
+		while (aux->prox != NULL) 
+    {
+      aux = aux->prox;
+    }
+		  aux->prox = item;
 	}
 }
 
@@ -220,10 +225,9 @@ void atualizar(funcionario* lista)
 
       while(aux!=NULL)
       {
-        if(strcmp(alterar, aux->nome)==0)
+        if(strcmp(alterar, aux->nome) == 0)
         {
           varencontrada++; //valida para dizer se o funcionario foi encontrado
-
           getchar();
           printf("\n nome do funcionario: ");
             fgets(aux->nome, 50, stdin);
@@ -235,12 +239,12 @@ void atualizar(funcionario* lista)
             scanf("%d", &aux->aniversario.dia);
           printf(" mes de nascimento do funcionario: ");
             scanf("%d", &aux->aniversario.mes);
-          printf(" ano de nascimento 3do funcionario: ");
+          printf(" ano de nascimento do funcionario: ");
             scanf("%d", &aux->aniversario.ano);
           printf(" salario do funcionario: ");
             scanf("%f", &aux->salario);
           printf("\n ficha do funcionario %s, atualizada!\n", aux->nome);
-          return;
+          return; 
         }
         aux=aux->prox;
       }
@@ -397,89 +401,105 @@ void relacionar(funcionario* lista)
   return;
 }
 
-/*void cidade(funcionario* lista)
+void cidade(funcionario* lista)
 {
-  funcionario *aux = lista;
-  int i, j; //variaveis contadoras
+  funcionario *aux = lista, *i = lista, *j = lista;
   int variguais=0, varanterior=0; //variaveis de controle
 
-  if(matricula==0)
+  if(lista==NULL)
   {
     printf("\nnao existe nenhum funcionario cadastrado no sistema. \n");
   }
   else
   {
-    for(i=1;i<=matricula;i++) // fixa um funcionario e compara com os outros
+    while(i!=NULL) // fixa um funcionario e compara com os outros
     {
       varanterior = 0; variguais = 0;
-      for(j=i;j>0;j--) // ve se esta cidade já foi contada anteriormente
+      j = lista;
+      while(j!=i)// ve se esta cidade já foi contada anteriormente
       {
-        if(strcmp(funcionario[i].cidade, funcionario[j].cidade)==0)
+        if(strcmp(i->cidade, j->cidade)==0)
         {
           varanterior++;
         }
+        j=j->prox;
       }
-      if(varanterior<=1)
+      if(varanterior<1)
       {
-        for(j=i;j<=matricula;j++) //procura quantas vezes essa cidade foi citada
+        j=i;
+        while(j!=NULL) //procura quantas vezes essa cidade foi citada
         {
-          if(strcmp(funcionario[i].cidade, funcionario[j].cidade)==0)
+          if(strcmp(i->cidade, j->cidade)==0)
           {
             variguais++;
           }
+          j=j->prox;
         }
-        printf("\n %s com %d funcionarios\n", funcionario[i].cidade, variguais);
+        printf("\n %s com %d funcionarios\n", i->cidade, variguais);
       }
+      i=i->prox;
     }
   }
   return;
 }
-*/
-void deletar(struct Funcionario funcionario[N])
+
+void deletar(funcionario** lista)
 {
-  int i, deletar=0; //variavel contadora e variavel que armazena qual funcionario deletar
+  funcionario *aux, *percorre = *lista; //ponteiro que aponta para o elemento que aponta para 
+  string deletar; //variavel contadora e variavel que armazena qual funcionario deletar
   int varencontrada=0; //variavel que indica se o funcionario a ser deletado esta cadastrado
 
-  if(matricula==0)
+  if((*lista)==NULL)
   {
     printf("\nnao existe nenhum funcionario cadastrado no sistema. \n");
   }
   else
   {
-    printf("\n (para deletar a ficha de um funcionario, eh necessario seu numero de matricula, caso nao saiba o numero de");
-    printf("\n matricula desejado, digite 400 para voltar ao menu e retirar o relatorio dos funcionarios cadastrados.)\n");
-    printf("\n digite a matricula do funcionario que deseja deletar a ficha: ");
-    scanf("%i", &deletar);
-
-    if(deletar==400)
-    {
-      return; //retorna para o menu
-    }
-    else
-    {
-      for(i=1;i<=matricula;i++)
+    getchar();
+    printf("\n digite o nome do funcionario que deseja deletar a ficha: ");
+    fgets(deletar, 50, stdin);
+    remove_enter(deletar);
+    
+      while(percorre!=NULL)
       {
-        if(deletar==i)
+        if(strcmp(deletar, percorre->nome)==0)
         {
-          varencontrada++; //indica se o funcionario esta atualmente cadastrado
-          matricula--; //diminui um da matricula já que foi excluido um funcionario. A: E SE SÓ TIVER 1 FUNCIONARIO CADASTRADO? O ALGORITMO N VAI DEIXAR DELETAR...
-          for(deletar=0;deletar<=matricula;deletar++)
+          varencontrada++;
+          matricula--;
+          //verifica se o elemento é o primeiro da lista
+          if(percorre->prox == (*lista)->prox)
           {
-            strcpy(funcionario[deletar].nome, funcionario[deletar+1].nome);
-            strcpy(funcionario[deletar].cidade, funcionario[deletar+1].cidade);
-            funcionario[deletar].aniversario.dia = funcionario[deletar+1].aniversario.dia;
-            funcionario[deletar].aniversario.mes = funcionario[deletar+1].aniversario.mes;
-            funcionario[deletar].aniversario.ano = funcionario[deletar+1].aniversario.ano;
-            funcionario[deletar].salario = funcionario[deletar+1].salario;
+            funcionario* auxp = (*lista)->prox;
+            free(*lista);
+            *lista = auxp;
+            printf("\nfuncionario deletado!");
+            break;
           }
-          printf("\n ficha do funcionario deletada!\n");
+          //verifica se o elemento é o ultimo da lista
+          else if(percorre->prox == NULL)
+          {
+            aux->prox = NULL;
+            free(percorre);
+            printf("\nfuncionario deletado!");
+            break;
+          }
+          //verifica se é um item valido
+          else
+          {
+            aux->prox = percorre->prox;
+            free(percorre);
+            printf("\nfuncionario deletado!");
+            break;
+          }
+          printf("\n ficha do funcionario deletada!\n"); 
         }
+        aux = percorre;
+        percorre=percorre->prox;
       }
-      if(varencontrada==0)
-      {
+        if(varencontrada==0)
+        {
         printf("\n funcionario nao encontrado. ");
-      }
-    }
+        }
   }
   return;
 }
@@ -497,40 +517,44 @@ void apaga_todos_os_dados(funcionario **lista)
 	}	
 }
 
-/*void exporta_dados_arquivo_txt(struct Funcionario funcionario[N])
+void exporta_dados_arquivo_txt(funcionario *lista)
 {
 	FILE* arq_funcionarios;
+  funcionario *aux = lista;
   //abre arquivo texto
-  arq_funcionarios = fopen("registro_funcionarios.txt", "w");
+  arq_funcionarios = fopen("registro_funcionarios.txt", "w+");
   
   if(arq_funcionarios == NULL)
   {
     printf("não foi possivel abrir o arquivo.\n");
     exit(0);
   }
-	int i;
-		
-	for (i = 1; i <= matricula; i++) {
-		fprintf(arq_funcionarios, "%s\n", funcionario[i].nome);
-		fprintf(arq_funcionarios, "%s\n", funcionario[i].cidade);
-		fprintf(arq_funcionarios, "%d\n", funcionario[i].aniversario.dia);
-    fprintf(arq_funcionarios, "%d\n", funcionario[i].aniversario.mes);
-    fprintf(arq_funcionarios, "%d\n", funcionario[i].aniversario.ano);
-		fprintf(arq_funcionarios, "%.2f\n\n", funcionario[i].salario);
+
+	while(aux!=NULL) 
+  {
+    printf("kjsnukfjsd");
+		fprintf(arq_funcionarios, "%s\n", aux->nome);
+		fprintf(arq_funcionarios, "%s\n", aux->cidade);
+		fprintf(arq_funcionarios, "%d\n", aux->aniversario.dia);
+    fprintf(arq_funcionarios, "%d\n", aux->aniversario.mes);
+    fprintf(arq_funcionarios, "%d\n", aux->aniversario.ano);
+		fprintf(arq_funcionarios, "%.2f\n\n", aux->salario);
+    aux=aux->prox;
 	}
 	fclose(arq_funcionarios);
 }
 
-void importa_dados_arquivo_txt(struct Funcionario funcionario[N])
+void importa_dados_arquivo_txt(funcionario **lista)
 {
-  if(matricula!=0)
+  if(*lista!=NULL)
   {
     printf("\nvocê não pode importar um arquivo texto porque já existem arquivos cadastrados na base de dados.");
   }
     
   else
   {
-      FILE* arq_funcionarios;
+    funcionario *aux;
+    FILE* arq_funcionarios;
     //abre arquivo texto
     arq_funcionarios = fopen("registro_funcionarios.txt", "a+");
     
@@ -539,18 +563,18 @@ void importa_dados_arquivo_txt(struct Funcionario funcionario[N])
       printf("não foi possivel abrir o arquivo.\n");
       exit(0);
     }
-  	int i=1;
-
     //passa os dados do arquivo para o programa
   	while(!feof(arq_funcionarios))
     {
-      fscanf(arq_funcionarios, "%s\n", funcionario[i].nome);
-  		fscanf(arq_funcionarios, "%s\n", funcionario[i].cidade);
-  		fscanf(arq_funcionarios, "%d\n", &funcionario[i].aniversario.dia);
-      fscanf(arq_funcionarios, "%d\n", &funcionario[i].aniversario.mes);
-      fscanf(arq_funcionarios, "%d\n", &funcionario[i].aniversario.ano);
-  		fscanf(arq_funcionarios, "%f\n\n", &funcionario[i].salario);
-      i++;
+      aux = (funcionario*)malloc(sizeof(funcionario));
+      fscanf(arq_funcionarios, "%s\n", aux->nome);
+  		fscanf(arq_funcionarios, "%s\n", aux->cidade);
+  		fscanf(arq_funcionarios, "%d\n", &aux->aniversario.dia);
+      fscanf(arq_funcionarios, "%d\n", &aux->aniversario.mes);
+      fscanf(arq_funcionarios, "%d\n", &aux->aniversario.ano);
+  		fscanf(arq_funcionarios, "%f\n\n", &aux->salario);
+      aux->prox=NULL;
+      insere_item(lista, aux);
       matricula++;
   	}
   	fclose(arq_funcionarios);
@@ -559,11 +583,12 @@ void importa_dados_arquivo_txt(struct Funcionario funcionario[N])
    return;
 }
 
-void salva_dados_arquivo_bin(struct Funcionario funcionario[N])
+void salva_dados_arquivo_bin(funcionario *lista)
 {
   	FILE* arq_funcionarios;
+    funcionario *aux = lista;
   //abre arquivo binario
-  arq_funcionarios = fopen("base_de_dados", "wb");
+  arq_funcionarios = fopen("base_de_dados", "wb+");
   
   if(arq_funcionarios == NULL)
   {
@@ -571,47 +596,59 @@ void salva_dados_arquivo_bin(struct Funcionario funcionario[N])
     exit(0);
   }
   
-  for (int i = 1; i <= matricula; i++) {
-  		fwrite(funcionario[i].nome, sizeof(char), N, arq_funcionarios);
-  		fwrite(funcionario[i].cidade, sizeof(char), N, arq_funcionarios);
-  		fwrite(&funcionario[i].aniversario.dia, sizeof(int), N,arq_funcionarios);
-      fwrite(&funcionario[i].aniversario.mes, sizeof(int), N, arq_funcionarios);
-      fwrite(&funcionario[i].aniversario.ano, sizeof(int), N, arq_funcionarios);
-  		fwrite(&funcionario[i].salario, sizeof(float), N, arq_funcionarios);
-        
+  while(aux!= NULL)
+  {
+  		fwrite(aux->nome, sizeof(string), 1, arq_funcionarios);
+  		fwrite(aux->cidade, sizeof(string), 1, arq_funcionarios);
+  		fwrite(&aux->aniversario.dia, sizeof(int), 1,arq_funcionarios);
+      fwrite(&aux->aniversario.mes, sizeof(int), 1, arq_funcionarios);
+      fwrite(&aux->aniversario.ano, sizeof(int), 1, arq_funcionarios);
+  		fwrite(&aux->salario, sizeof(float), 1, arq_funcionarios);
+      aux=aux->prox;
   	}
   	fclose(arq_funcionarios); 
 }
 
-void recupera_dados_arquivo_bin(struct Funcionario funcionario[N])
-{
-   FILE* arq_funcionarios;
+void recupera_dados_arquivo_bin(funcionario **lista)
+{ 
+  FILE* arq_funcionarios;
+  funcionario *aux;
+  
     //abre arquivo texto
-    arq_funcionarios = fopen("base_de_dados", "ab+");
+    arq_funcionarios = fopen("base_de_dados", "rb");
     
     if(arq_funcionarios == NULL)
     {
       printf("ERROR\n");
       exit(0);
     }
-  	int i=1;
 
     //passa os dados do arquivo para o programa
   	while(!feof(arq_funcionarios))
     {
-      fread(funcionario[i].nome, sizeof(char), N, arq_funcionarios);
-  		fread(funcionario[i].cidade, sizeof(char), N, arq_funcionarios);
-  		fread(&funcionario[i].aniversario.dia, sizeof(int), N,arq_funcionarios);
-      fread(&funcionario[i].aniversario.mes, sizeof(int), N, arq_funcionarios);
-      fread(&funcionario[i].aniversario.ano, sizeof(int), N, arq_funcionarios);
-  		fread(&funcionario[i].salario, sizeof(float), N, arq_funcionarios);
-      i++;
-      matricula++;
+      aux = (funcionario*)malloc(sizeof(funcionario));
+      fread(aux->nome, sizeof(string), 1, arq_funcionarios);
+  		fread(aux->cidade, sizeof(string), 1, arq_funcionarios);
+  		fread(&aux->aniversario.dia, sizeof(int), 1,arq_funcionarios);
+      fread(&aux->aniversario.mes, sizeof(int), 1, arq_funcionarios);
+      fread(&aux->aniversario.ano, sizeof(int), 1, arq_funcionarios);
+  		fread(&aux->salario, sizeof(float), 1, arq_funcionarios);
+      aux->prox=NULL;
+      if (!feof(arq_funcionarios)) 
+      {
+        matricula++;
+        insere_item(lista, aux);
+  	  }
+      else
+      {
+        free(aux);
+      }
+      
   	}
-  matricula--;
+    matricula--;
   	fclose(arq_funcionarios);
 }
-*/
+
 void remove_enter(char s[N])
 {
 	int tamanho = strlen(s);
